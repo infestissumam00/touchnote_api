@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 from transformers import BertForSequenceClassification, BertTokenizer
 import torch
+import numpy as np
 
 app = FastAPI()
 
@@ -19,7 +20,8 @@ def sentiment(tokens):
     # convert to probabilities
     probs = torch.nn.functional.softmax(output[0], dim=-1)
     pred = torch.argmax(probs)
-    return pred.item()
+    proba = np.max(probs.detach().cpu().numpy())
+    return pred.item(), proba
 
 @app.get("/healthcheck")
 def read_root():
@@ -30,5 +32,6 @@ def predict(data: request_body):
     txt = data.snippet
     tokens = tokenizer.encode_plus(txt, max_length=512, truncation=True, padding='max_length',
                                add_special_tokens=True, return_tensors='pt')
-    pred = sentiment(tokens)
-    return {"snippet": txt, "pred": pred}
+    pred, proba = sentiment(tokens)
+    
+    return {"snippet": txt, "pred": pred, "confidence": proba}
