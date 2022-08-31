@@ -23,7 +23,7 @@ def sentiment(tokens):
 
 @app.get("/healthcheck")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "world"}
     
 @app.post("/predict")
 def predict(data: request_body):
